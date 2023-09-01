@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://5x7mkl0k0oep"]
+
+[ext_resource type="PackedScene" uid="uid://c36velgas3n3k" path="res://addons/zylann.atmosphere/planet_atmosphere.tscn" id="1_57h7r"]
+
+[node name="world" type="Node3D"]
+
+[node name="CSGSphere3D" type="CSGSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -167.201, -2.24657, -13.2123)
+radius = 4096.0
+radial_segments = 20
+rings = 20
+
+[node name="PlanetAthmosphere" parent="CSGSphere3D" instance=ExtResource("1_57h7r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0188, -91.5499, 91.9834)
+planet_radius = 4250.0
+atmosphere_height = 64.0
+sun_path = NodePath("../../OmniLight3D")
+shader_params/u_scattering_strength = 10.0
+shader_params/u_atmosphere_modulate = Color(0.904798, 0.894935, 1, 1)
+shader_params/u_atmosphere_ambient_color = Color(0, 0, 0, 1)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5083, 24.1365, -18322.5)
+omni_range = 4096.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5340.84, 900.421, 1653.29)
+current = true

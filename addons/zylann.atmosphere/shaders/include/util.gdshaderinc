@@ -1,6 +1,7 @@
 #ifndef UTIL_INCLUDED
 #define UTIL_INCLUDED
 
+
 // https://iquilezles.org/articles/intersectors/
 vec2 ray_box_intersection(in vec3 ro, in vec3 rd, vec3 boxSize)  {
 	vec3 m = 1.0 / rd; // can precompute if traversing a set of aligned boxes
@@ -32,7 +33,7 @@ vec2 ray_sphere(vec3 center, float radius, vec3 ray_origin, vec3 ray_dir) {
 	if (h < 0.0) {
 		// No intersection
 		//return Vector2(-1.0, -1.0)
-		return vec2(1000000.0, 1000000.0);
+		return vec2(1e20, 1e20);
 	}
 	h = sqrt( h );
 	return vec2( -b-h, -b+h );

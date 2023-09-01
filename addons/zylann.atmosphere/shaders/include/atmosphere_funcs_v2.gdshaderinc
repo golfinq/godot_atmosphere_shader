@@ -37,6 +37,8 @@ vec4 compute_atmosphere_v2(
 	float t_end,
 	float linear_depth,
 	vec3 sun_dir,
+	float planet_radius,
+	float atmosphere_height,
 	float jitter
 ) {
 	// Rocky planets don't need many steps (8 can be enough).
@@ -50,39 +52,39 @@ vec4 compute_atmosphere_v2(
 		pow4(400.0 / u_scattering_wavelengths.z)
 	) * u_scattering_strength;
 	
-	float step_len = (t_end - t_begin) / float(steps);
-	vec3 total_light = vec3(0.0);
-	float view_ray_optical_depth = 0.0;
-	float alpha = 0.0;
-	vec3 pos0 = ray_origin + ray_dir * t_begin;
-	vec3 pos = pos0;
+	highp float step_len = (t_end - t_begin) / float(steps);
+	highp vec3 total_light = vec3(0.0);
+	highp float view_ray_optical_depth = 0.0;
+	highp float alpha = 0.0;
+	highp vec3 pos0 = ray_origin + ray_dir * t_begin;
+	highp vec3 pos = pos0;
+	float n_steps = float(steps);
 	
 	for (int i = 0; i < steps; ++i) {
-		float sun_ray_optical_depth = 
+		highp float sun_ray_optical_depth = 
 			get_baked_optical_depth(pos, sun_dir, planet_center, u_optical_depth_texture);
 
-		float height = distance(pos, planet_center);
-		float local_density = get_atmosphere_density(height) * u_density;
+		highp float height = distance(pos, planet_center);
+		highp float local_density = get_atmosphere_density(height) * u_density;
 		view_ray_optical_depth += local_density * step_len;
 //		view_ray_optical_depth = 
 //			get_baked_optical_depth(pos0, ray_dir, planet_center, u_optical_depth_texture)
 //			- get_baked_optical_depth(pos, ray_dir, planet_center, u_optical_depth_texture);
 		
-		vec3 transmittance = exp(
+		highp vec3 transmittance = exp(
 			-(sun_ray_optical_depth + view_ray_optical_depth) 
 			* scattering_coefficients);
 		
 		total_light += local_density * step_len * transmittance * scattering_coefficients;
 		
 		// Alpha depends on the amount of stuff the ray goes through
-		float vtransmittance = exp(-local_density * step_len);
-		alpha += (1.0 - vtransmittance) * (1.0 - alpha);
-		
+		highp float vtransmittance = exp(-local_density * step_len);
+		alpha += (1. - clamp((height - planet_radius)/atmosphere_height, 0., 1.))*((1.0 - vtransmittance) * (1.0 - alpha));
 		pos += ray_dir * step_len;
 	}
 	
-//	float sunp = dot(ray_dir, sun_dir);
-//	total_light += vec3(1.0) * pow(max(sunp, 0.0), 20.0);
+	// float sunp = dot(ray_dir, sun_dir);
+	// total_light += vec3(1.0) * pow(max(sunp, 0.0), 20.0);
 	
 	// Former alpha calculation, causing the atmosphere to stop drawing the darker it gets
 //	alpha = clamp(max(max(total_light.r, total_light.g), total_light.b), 0.0, 1.0);
@@ -93,9 +95,9 @@ vec4 compute_atmosphere_v2(
 	// Get rid of color banding.
 	// Make sure it doesn't go out of bounds.
 	// Also for some reason clamping to 1.0 caused HDR sunsets to be noisy
-	alpha = clamp(alpha + jitter * 0.02, 0.0, 0.99);
+	// alpha = clamp(alpha + jitter * 0.02, 0.0, 0.99);
 	
 	total_light *= u_atmosphere_modulate;
 
-	return vec4(total_light, alpha);
+	return vec4(clamp(total_light, vec3(0.), vec3(1.)), clamp(alpha, 0. , 1.));
 }

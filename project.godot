@@ -10,10 +10,11 @@ config_version=5
 
 [application]
 
-config/name="Atmosphere"
-config/features=PackedStringArray("4.0")
-config/icon="res://icon.png"
+config/name="Planet Shader Help"
+run/main_scene="res://world.tscn"
+config/features=PackedStringArray("4.1", "Forward Plus")
+config/icon="res://icon.svg"
 
-[rendering]
+[editor_plugins]
 
-environment/default_environment="res://default_env.tres"
+enabled=PackedStringArray("res://addons/zylann.atmosphere/tools/plugin.cfg")

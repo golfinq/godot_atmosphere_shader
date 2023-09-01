@@ -57,13 +57,13 @@ uniform bool u_clip_mode = false;
 // Blends towards depth calculation using a simplified sphere, instead of the depth buffer.
 // May be used over large distances to remove flickering, at the expense of less accuracy.void
 // This is because Godot's depth buffer is lacking precision. 32-bit option plz?
-uniform float u_sphere_depth_factor = 0.0;
+uniform highp float u_sphere_depth_factor = 0.0;
 //uniform sampler2D u_depth_texture : hint_depth_texture;
 
 uniform sampler2D u_blue_noise_texture : filter_nearest, repeat_enable;
 
-varying vec3 v_planet_center_viewspace;
-varying vec3 v_sun_center_viewspace;
+varying highp vec3 v_planet_center_viewspace;
+varying highp vec3 v_sun_center_viewspace;
 
 
 void atmosphere_vertex(
@@ -134,12 +134,12 @@ void atmosphere_fragment(
 	// we have to account for the near and far clips properly, so they can be composed seamlessly
 	
 	if (rs_atmo.x != rs_atmo.y) {
-		float t_begin = max(rs_atmo.x, 0.0);
-		float t_end = max(rs_atmo.y, 0.0);
+		highp float t_begin = max(rs_atmo.x, 0.0);
+		highp float t_end = max(rs_atmo.y, 0.0);
 		
-		vec2 rs_ground = 
+		highp vec2 rs_ground = 
 			ray_sphere(in_v_planet_center_viewspace, u_planet_radius, ray_origin, ray_dir);
-		float gd = 10000000.0;
+		highp float gd = 1e20;
 		if (rs_ground.x != rs_ground.y) {
 			gd = rs_ground.x;
 		}
@@ -147,12 +147,12 @@ void atmosphere_fragment(
 		
 		t_end = min(t_end, linear_depth);
 
-		vec3 sun_dir = normalize(in_v_sun_center_viewspace - v_planet_center_viewspace);
+		highp vec3 sun_dir = normalize(in_v_sun_center_viewspace - v_planet_center_viewspace);
 		
 		// Blue noise doesn't have low-frequency patterns, it looks less "noisy"
 		// http://momentsingraphics.de/BlueNoise.html
-		vec2 jitter_uv = viewport_size * screen_uv;// + vec2(TIME*1000.0, 0);
-		float jitter = texelFetch(u_blue_noise_texture, ivec2(jitter_uv) & ivec2(0xff), 0).r;
+		highp vec2 jitter_uv = viewport_size * screen_uv;// + vec2(TIME*1000.0, 0);
+		highp float jitter = texelFetch(u_blue_noise_texture, ivec2(jitter_uv) & ivec2(0xff), 0).r;
 //		jitter = 0.0;
 
 #ifdef ATMOSPHERE_LITE
@@ -161,7 +161,7 @@ void atmosphere_fragment(
 			t_begin, t_end, sun_dir);
 #else
 		vec4 atmosphere = compute_atmosphere_v2(ray_origin, ray_dir, in_v_planet_center_viewspace,
-			t_begin, t_end, linear_depth, sun_dir, jitter);
+			t_begin, t_end, linear_depth, sun_dir, u_planet_radius, u_atmosphere_height, jitter);
 #endif
 		
 		out_albedo = atmosphere.rgb;
